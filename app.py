@@ -30,6 +30,15 @@ class QRCodeData(db.Model):
 
 with app.app_context():
     db.create_all()
+    # Simple migration check for existing databases
+    from sqlalchemy import inspect, text
+    inspector = inspect(db.engine)
+    columns = [c['name'] for c in inspector.get_columns('qr_code_data')]
+    if 'fill_color' not in columns:
+        with db.engine.connect() as conn:
+            conn.execute(text("ALTER TABLE qr_code_data ADD COLUMN fill_color VARCHAR(20) DEFAULT 'black'"))
+            conn.execute(text("ALTER TABLE qr_code_data ADD COLUMN back_color VARCHAR(20) DEFAULT 'white'"))
+            conn.commit()
 
 @app.route('/')
 def index():
