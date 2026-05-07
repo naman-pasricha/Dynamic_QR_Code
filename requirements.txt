@@ -2,3 +2,4 @@ flask
 qrcode[pil]
 flask-sqlalchemy
 python-dotenv
+gunicorn

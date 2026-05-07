@@ -10,7 +10,7 @@ A Python-based Dynamic QR Code generator that allows you to change the destinati
 - `requirements.txt`: Python dependencies.
 - `templates/index.html`: Dashboard template.
 - `static/css/style.css`: Premium styling.
-- `Generated QR CODES/`: Storage for generated QR images.
+- `generated_qrcodes/`: Storage for generated QR images.
 - **Instant Generation**: Uses the `qrcode` library to generate high-quality codes.
 - **Downloadable**: Save your QR codes as PNG files.
 
