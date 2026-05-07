@@ -21,6 +21,8 @@ class QRCodeData(db.Model):
     label = db.Column(db.String(100), nullable=False)
     short_code = db.Column(db.String(10), unique=True, nullable=False)
     target_url = db.Column(db.String(500), nullable=False)
+    fill_color = db.Column(db.String(20), default="black")
+    back_color = db.Column(db.String(20), default="white")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -38,6 +40,8 @@ def index():
 def create_qr():
     label = request.form.get('label')
     target_url = request.form.get('target_url')
+    fill_color = request.form.get('fill_color', 'black')
+    back_color = request.form.get('back_color', 'white')
     
     if not label or not target_url:
         return redirect(url_for('index'))
@@ -45,7 +49,7 @@ def create_qr():
     # Generate a unique short code
     short_code = str(uuid.uuid4())[:8]
     
-    new_qr = QRCodeData(label=label, short_code=short_code, target_url=target_url)
+    new_qr = QRCodeData(label=label, short_code=short_code, target_url=target_url, fill_color=fill_color, back_color=back_color)
     db.session.add(new_qr)
     db.session.commit()
 
@@ -57,7 +61,7 @@ def create_qr():
     qr.add_data(redirect_url)
     qr.make(fit=True)
     
-    img = qr.make_image(fill_color="black", back_color="white")
+    img = qr.make_image(fill_color=new_qr.fill_color, back_color=new_qr.back_color)
     # Named as "1", "2", etc.
     img_name = f"{new_qr.id}.png"
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
