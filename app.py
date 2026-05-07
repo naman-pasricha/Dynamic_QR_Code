@@ -64,7 +64,7 @@ def create_qr():
     base_url = request.host_url.rstrip('/')
     redirect_url = f"{base_url}/r/{short_code}"
     
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr = qrcode.QRCode(version=1, box_size=10, border=0)
     qr.add_data(redirect_url)
     qr.make(fit=True)
     
@@ -105,7 +105,7 @@ def update_qr(id):
         base_url = request.host_url.rstrip('/')
         redirect_url = f"{base_url}/r/{qr_entry.short_code}"
         
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr = qrcode.QRCode(version=1, box_size=10, border=0)
         qr.add_data(redirect_url)
         qr.make(fit=True)
         

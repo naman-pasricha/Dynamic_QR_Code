@@ -223,16 +223,18 @@
         }
 
         .preview-box {
-            background: white;
+            background: rgba(255, 255, 255, 0.05);
             width: 200px;
             height: 200px;
             border-radius: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px;
+            padding: 0;
             margin-top: 1rem;
             position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         #qrcodePreview {
@@ -279,12 +281,14 @@
         }
 
         .qr-image-container {
-            background: white;
-            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0;
             border-radius: 1rem;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         .qr-image-container img {
