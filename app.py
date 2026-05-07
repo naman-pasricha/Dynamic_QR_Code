@@ -21,8 +21,8 @@ class QRCodeData(db.Model):
     label = db.Column(db.String(100), nullable=False)
     short_code = db.Column(db.String(10), unique=True, nullable=False)
     target_url = db.Column(db.String(500), nullable=False)
-    fill_color = db.Column(db.String(20), default="black")
-    back_color = db.Column(db.String(20), default="white")
+    fill_color = db.Column(db.String(50), default='black')
+    back_color = db.Column(db.String(50), default='white')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -30,15 +30,6 @@ class QRCodeData(db.Model):
 
 with app.app_context():
     db.create_all()
-    # Simple migration check for existing databases
-    from sqlalchemy import inspect, text
-    inspector = inspect(db.engine)
-    columns = [c['name'] for c in inspector.get_columns('qr_code_data')]
-    if 'fill_color' not in columns:
-        with db.engine.connect() as conn:
-            conn.execute(text("ALTER TABLE qr_code_data ADD COLUMN fill_color VARCHAR(20) DEFAULT 'black'"))
-            conn.execute(text("ALTER TABLE qr_code_data ADD COLUMN back_color VARCHAR(20) DEFAULT 'white'"))
-            conn.commit()
 
 @app.route('/')
 def index():
@@ -49,6 +40,7 @@ def index():
 def create_qr():
     label = request.form.get('label')
     target_url = request.form.get('target_url')
+    
     fill_color = request.form.get('fill_color', 'black')
     back_color = request.form.get('back_color', 'white')
     
@@ -58,7 +50,13 @@ def create_qr():
     # Generate a unique short code
     short_code = str(uuid.uuid4())[:8]
     
-    new_qr = QRCodeData(label=label, short_code=short_code, target_url=target_url, fill_color=fill_color, back_color=back_color)
+    new_qr = QRCodeData(
+        label=label, 
+        short_code=short_code, 
+        target_url=target_url,
+        fill_color=fill_color,
+        back_color=back_color
+    )
     db.session.add(new_qr)
     db.session.commit()
 
@@ -70,7 +68,7 @@ def create_qr():
     qr.add_data(redirect_url)
     qr.make(fit=True)
     
-    img = qr.make_image(fill_color=new_qr.fill_color, back_color=new_qr.back_color)
+    img = qr.make_image(fill_color=fill_color, back_color=back_color)
     # Named as "1", "2", etc.
     img_name = f"{new_qr.id}.png"
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
@@ -83,13 +81,39 @@ def update_qr(id):
     qr_entry = QRCodeData.query.get_or_404(id)
     new_target_url = request.form.get('target_url')
     new_label = request.form.get('label')
+    new_fill = request.form.get('fill_color')
+    new_back = request.form.get('back_color')
     
     if new_target_url:
         qr_entry.target_url = new_target_url
     if new_label:
         qr_entry.label = new_label
+    
+    # Check if colors changed to regenerate image
+    regenerate = False
+    if new_fill and new_fill != qr_entry.fill_color:
+        qr_entry.fill_color = new_fill
+        regenerate = True
+    if new_back and new_back != qr_entry.back_color:
+        qr_entry.back_color = new_back
+        regenerate = True
         
     db.session.commit()
+
+    if regenerate:
+        # Regenerate QR image
+        base_url = request.host_url.rstrip('/')
+        redirect_url = f"{base_url}/r/{qr_entry.short_code}"
+        
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(redirect_url)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color=qr_entry.fill_color, back_color=qr_entry.back_color)
+        img_name = f"{qr_entry.id}.png"
+        img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
+        img.save(img_path)
+
     return redirect(url_for('index'))
 
 @app.route('/delete/<int:id>')
